@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white shadow rounded p-6">
+    <h2 class="text-xl font-bold mb-4">Permission Request</h2>
+
+    <p><strong>Title:</strong> {{ req.title }}</p>
+    <p><strong>Student:</strong> {{ req.student.username }}</p>
+    <p><strong>From:</strong> {{ req.from_date }}</p>
+    <p><strong>To:</strong> {{ req.to_date }}</p>
+    <p><strong>Reason:</strong></p>
+    <p class="mt-2 text-gray-700">{{ req.reason }}</p>
+
+    <a href="{% url 'dashboard' %}" class="mt-4 inline-block text-blue-600">
+        ← Back to Dashboard
+    </a>
+</div>
+{% endblock %}

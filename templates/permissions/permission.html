@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-12">
+    <div class="bg-white shadow-lg rounded-2xl p-8 overflow-visible">
+
+        <h2 class="text-3xl font-bold text-gray-800 mb-2 text-center">
+            Request Permission
+        </h2>
+        <p class="text-gray-500 text-center mb-8">
+            Fill in the details below to submit your permission request.
+        </p>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6 relative overflow-visible">
+            {% csrf_token %}
+
+            <!-- Request To (Role Dropdown) -->
+            <div>
+                <label class="block text-gray-700">Request To</label>
+                <select id="role-select" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">Select Role</option>
+                    {% for role, users in users_by_role.items %}
+                        <option value="{{ role }}">{{ role|capfirst }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Actual User Dropdown -->
+            <div id="user-select-div" class="mt-2">
+                <label class="block text-gray-700">Select User</label>
+                <select name="request_to" id="user-select" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
+                    <option value="">Select a user</option>
+                </select>
+            </div>
+
+            <!-- Title -->
+            <div class="mb-4">
+                <label class="block text-gray-700 font-semibold mb-1">
+                    Title
+                </label>
+                <input
+                    type="text"
+                    name="title"
+                    placeholder="Sick / Exam / Workshop"
+                    required
+                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+            </div>
+
+            <!-- Upload File -->
+            <div>
+                <label class="block text-gray-700 font-semibold mb-2">
+                    Upload Permission Letter (PDF / DOC)
+                </label>
+                <input type="file" name="permission_file"
+                       accept=".pdf,.doc,.docx"
+                       class="w-full border border-gray-300 rounded-xl px-4 py-3">
+            </div>
+
+            <!-- Reason / AI Letter -->
+            <div>
+                <label class="block text-gray-700 font-semibold mb-2">
+                    Reason / AI Letter
+                </label>
+                <textarea id="ai-letter" name="reason" rows="5" required
+                          placeholder="Enter your reason here..."
+                          class="w-full border border-gray-300 rounded-xl px-4 py-3
+                                 focus:outline-none focus:ring-2 focus:ring-indigo-600"></textarea>
+            </div>
+
+            <!-- Dates -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        From Date
+                    </label>
+                    <input type="date" name="from_date" required
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3">
+                </div>
+
+                <div>
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        To Date
+                    </label>
+                    <input type="date" name="to_date" required
+                           class="w-full border border-gray-300 rounded-xl px-4 py-3">
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="text-center">
+                <button type="submit"
+                        class="bg-indigo-600 text-white font-semibold px-10 py-3
+                               rounded-xl hover:bg-indigo-700 transition">
+                    Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Pass users_by_role safely as JSON -->
+{{ users_by_role|json_script:"users-by-role-data" }}
+
+<script>
+// Elements
+const aiLetter = document.getElementById('ai-letter');
+const roleSelect = document.getElementById('role-select');
+const userSelect = document.getElementById('user-select');
+const fromDateInput = document.querySelector('input[name="from_date"]');
+const toDateInput = document.querySelector('input[name="to_date"]');
+
+// Parse JSON from backend
+const usersByRoleRaw = JSON.parse(document.getElementById('users-by-role-data').textContent);
+const usersByRole = {};
+for (const role in usersByRoleRaw) {
+    usersByRole[role] = usersByRoleRaw[role].map(u => ({
+        id: u['user__id'],
+        name: u['user__first_name'] + ' ' + u['user__last_name']
+    }));
+}
+
+// Update user dropdown when role changes
+roleSelect.addEventListener('change', updateUserDropdown);
+userSelect.addEventListener('change', updateLetter);
+fromDateInput.addEventListener('input', updateLetter);
+toDateInput.addEventListener('input', updateLetter);
+
+function updateUserDropdown() {
+    const role = roleSelect.value;
+    userSelect.innerHTML = '<option value="">Select a user</option>';
+    userSelect.disabled = !role;
+
+    if (role && usersByRole[role] && usersByRole[role].length > 0) {
+        usersByRole[role].forEach(u => {
+            const option = document.createElement('option');
+            option.value = u.id;
+            option.text = u.name;
+            userSelect.appendChild(option);
+        });
+    } else if (role) {
+        const option = document.createElement('option');
+        option.value = "";
+        option.text = "No users available for this role";
+        userSelect.appendChild(option);
+    }
+    updateLetter();
+}
+
+// Update AI Letter dynamically
+function updateLetter() {
+    const authority = userSelect.options[userSelect.selectedIndex]?.text || "[Authority]";
+    const fromDate = fromDateInput.value || "[FROM DATE]";
+    const toDate = toDateInput.value || "[TO DATE]";
+    const userName = "{{ request.user.get_full_name|default:request.user.username }}";
+
+    aiLetter.value = `Dear ${authority},
+
+I kindly request permission from ${fromDate} to ${toDate} due to a valid reason.
+I request you to please consider my application.
+
+Thanking you.
+
+Sincerely,
+${userName}`;
+}
+</script>
+
+{% endblock %}
