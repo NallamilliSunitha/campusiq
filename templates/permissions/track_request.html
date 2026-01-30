@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="max-w-5xl mx-auto space-y-8">
+
+  <!-- Header -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h2 class="text-2xl font-bold text-gray-800">Track Request</h2>
+    <p class="text-gray-500 mt-1">Track your request timeline and current status</p>
+  </div>
+
+  <!-- Request Details -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h3 class="text-lg font-semibold mb-4">Request Details</h3>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+      <div>
+        <span class="font-semibold text-gray-600">Title:</span>
+        {{ request_obj.title|default:"—" }}
+      </div>
+
+      <div>
+        <span class="font-semibold text-gray-600">Applied On:</span>
+        {{ request_obj.applied_at|date:"Y-m-d H:i" }}
+      </div>
+
+      <div>
+        <span class="font-semibold text-gray-600">From:</span>
+        {{ request_obj.from_date }}
+      </div>
+
+      <div>
+        <span class="font-semibold text-gray-600">To:</span>
+        {{ request_obj.to_date }}
+      </div>
+
+      <div>
+        <span class="font-semibold text-gray-600">Status:</span>
+        {% if request_obj.status == "approved" %}
+          <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Approved</span>
+        {% elif request_obj.status == "rejected" %}
+          <span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Rejected</span>
+        {% else %}
+          <span class="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Pending</span>
+        {% endif %}
+      </div>
+
+      <div>
+        <span class="font-semibold text-gray-600">Current Location:</span>
+        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+          {{ request_obj.current_level|upper }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="bg-white rounded-xl shadow p-6">
+    <h3 class="text-lg font-semibold mb-4">Timeline</h3>
+
+    {% if history %}
+      <ol class="relative border-l border-gray-200 ml-3 space-y-5">
+        {% for h in history %}
+          <li class="ml-6">
+            <span class="absolute -left-3 flex items-center justify-center w-6 h-6 bg-indigo-600 rounded-full text-white text-xs">
+              ✓
+            </span>
+
+            <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p class="font-semibold text-gray-800">{{ h.action|upper }}</p>
+                <p class="text-xs text-gray-500">{{ h.created_at|date:"Y-m-d H:i" }}</p>
+              </div>
+
+              <p class="text-sm text-gray-600 mt-1">
+                {% if h.from_role %}
+                  From <b>{{ h.from_role|upper }}</b>
+                {% endif %}
+                {% if h.to_role %}
+                  → To <b>{{ h.to_role|upper }}</b>
+                {% endif %}
+              </p>
+
+              {% if h.actor %}
+                <p class="text-xs text-gray-500 mt-1">
+                  By {{ h.actor.get_full_name|default:h.actor.username }}
+                </p>
+              {% endif %}
+
+              {% if h.note %}
+                <p class="text-sm text-gray-600 mt-2">{{ h.note }}</p>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ol>
+    {% else %}
+      <p class="text-gray-500">No tracking history yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Back -->
+  <div class="text-right">
+    <a href="{% url 'dashboard' %}"
+       class="inline-block px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-800">
+      ← Back to Dashboard
+    </a>
+  </div>
+
+</div>
+
+{% endblock %}

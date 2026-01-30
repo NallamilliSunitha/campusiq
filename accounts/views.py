@@ -87,12 +87,19 @@ def dashboard(request):
         "rejected": submitted_requests.filter(status="rejected").count(),
     }
 
-    # Counts for received requests (staff/proctor/hod/principal)
+    # ✅ Counts for received requests (staff/proctor/hod/principal)
     received_counts = {"pending": 0, "approved": 0, "rejected": 0}
     if role != "student":
-        status_data = received_requests.values("status").annotate(count=Count("status"))
-        for item in status_data:
-            received_counts[item["status"]] = item["count"]
+        # Approved/Rejected: normal
+        received_counts["approved"] = received_requests.filter(status="approved").count()
+        received_counts["rejected"] = received_requests.filter(status="rejected").count()
+
+        # Pending Review: count ONLY if it is still at my level (not forwarded away)
+        # Forwarded requests usually have status="pending" but current_level becomes next role.
+        received_counts["pending"] = received_requests.filter(
+            status="pending",
+            current_level=role
+        ).count()
 
     context = {
         "profile": profile,
@@ -108,51 +115,93 @@ def dashboard(request):
 
     return render(request, "dashboard/dashboard.html", context)
 
+from django.http import HttpResponseForbidden
+from permissions.models import PermissionRequest, RequestHistory
 
 @login_required
 def request_permission(request):
     profile = request.user.userprofile  # current user's profile
 
+    my_role = (profile.role or "").strip().lower()
+
     # Determine roles the current user can request permission from
-    if profile.role == "student":
+    if my_role == "student":
         roles = ['proctor', 'staff', 'hod', 'principal']
-    elif profile.role == "staff":
+    elif my_role == "staff":
         roles = ['hod', 'principal']
-    elif profile.role == "hod":
+    elif my_role == "hod":
         roles = ['principal']
-    else:  # principal or any other role
+    else:
         roles = []
 
-    # Get users by allowed roles
+    # Get users by allowed roles (OPTIONAL: filter same department)
     users_by_role = {
         role: list(
-            UserProfile.objects.filter(role=role)
-            .values('user__id', 'user__first_name', 'user__last_name')
+            UserProfile.objects.filter(role=role, department=profile.department)
+            .select_related("user")
+            .values('user__id', 'user__first_name', 'user__last_name', 'user__username')
         )
         for role in roles
     }
 
     if request.method == "POST":
         selected_user_id = request.POST.get("request_to")
+        if not selected_user_id:
+            return redirect("request_permission")
+
         selected_user = User.objects.get(id=selected_user_id)
 
-        PermissionRequest.objects.create(
+        # ✅ Get selected user's ROLE from UserProfile
+        target_profile = UserProfile.objects.filter(user=selected_user).first()
+        if not target_profile:
+            return HttpResponseForbidden("Selected user has no profile")
+
+        target_role = (target_profile.role or "").strip().lower()
+
+        # ✅ Create request (current_level must be ROLE, not username)
+        req = PermissionRequest.objects.create(
             student=request.user,
             request_to=selected_user,
-            title=request.POST.get("title"),
-            reason=request.POST.get("reason"),
+            title=request.POST.get("title") or "",
+            reason=request.POST.get("reason") or "",
             from_date=request.POST.get("from_date"),
             to_date=request.POST.get("to_date"),
-            current_level=selected_user.username,
+            current_level=target_role,   # ✅ FIXED HERE
             file=request.FILES.get("permission_file")
+        )
+
+        # ✅ History entry for creation (optional but needed for Track timeline)
+        RequestHistory.objects.create(
+            request=req,
+            action="created",
+            from_role=my_role,
+            to_role=target_role,
+            actor=request.user,
+            note="Request created"
         )
 
         return redirect("dashboard")
 
-    context = {
+    return render(request, "permissions/permission.html", {
         "users_by_role": users_by_role
-    }
-    return render(request, "permissions/permission.html", context)
+    })
+
+
+@login_required
+def my_requests(request):
+    user = request.user
+
+    requests = (
+        PermissionRequest.objects
+        .filter(student=user)
+        .select_related("request_to")
+        .order_by("-applied_at")
+    )
+
+    return render(request, "dashboard/my_requests.html", {
+        "requests": requests
+    })
+
 
 
 

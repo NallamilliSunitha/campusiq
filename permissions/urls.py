@@ -12,6 +12,8 @@ urlpatterns = [
     
     path("requests/<int:pk>/forward-ui/", views.forward_ui, name="forward_ui"),
     path("requests/<int:pk>/forward-do/", views.forward_do, name="forward_do"),
+    path("track/<int:id>/", views.track_request, name="track_request"),
+
 ]
 
 

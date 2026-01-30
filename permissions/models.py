@@ -43,3 +43,34 @@ class PermissionRequest(models.Model):
 
     def __str__(self):
         return f"{self.title} | {self.student.username} → {self.request_to.username if self.request_to else 'N/A'}"
+    
+class RequestHistory(models.Model):
+    ACTION_CHOICES = [
+        ("created", "Created"),
+        ("forwarded", "Forwarded"),
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+    ]
+
+    request = models.ForeignKey(
+        PermissionRequest,
+        on_delete=models.CASCADE,
+        related_name="history"
+    )
+
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    from_role = models.CharField(max_length=20, blank=True, null=True)
+    to_role = models.CharField(max_length=20, blank=True, null=True)
+
+    actor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    note = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.request_id} - {self.action}"

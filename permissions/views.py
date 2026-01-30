@@ -1,6 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import PermissionRequest
+from django.http import JsonResponse, HttpResponseForbidden
+from django.views.decorators.http import require_POST
+
+from accounts.models import UserProfile
+from .models import PermissionRequest, RequestHistory
 
 
 @login_required
@@ -13,20 +17,58 @@ def view_request(request, id):
     return render(request, 'permissions/view_request.html', {'req': req})
 
 
+from .models import RequestHistory  # make sure this import exists
+
 @login_required
 def approve_request(request, id):
     req = get_object_or_404(PermissionRequest, id=id)
-    req.status = 'approved'
-    req.save()
-    return redirect('dashboard')
+
+    # only assigned person can approve
+    if req.request_to_id != request.user.id:
+        return HttpResponseForbidden("Not allowed")
+
+    old_level = req.current_level
+
+    req.status = "approved"
+    req.save(update_fields=["status"])
+
+    RequestHistory.objects.create(
+        request=req,
+        action="approved",
+        from_role=old_level,
+        to_role=old_level,
+        actor=request.user,
+        note="Approved"
+    )
+
+    return redirect("dashboard")
 
 
 @login_required
 def reject_request(request, id):
     req = get_object_or_404(PermissionRequest, id=id)
-    req.status = 'rejected'
-    req.save()
-    return redirect('dashboard')
+
+    # only assigned person can reject
+    if req.request_to_id != request.user.id:
+        return HttpResponseForbidden("Not allowed")
+
+    old_level = req.current_level
+
+    req.status = "rejected"
+    req.save(update_fields=["status"])
+
+    RequestHistory.objects.create(
+        request=req,
+        action="rejected",
+        from_role=old_level,
+        to_role=old_level,
+        actor=request.user,
+        note="Rejected"
+    )
+
+    return redirect("dashboard")
+
+
 
 
 @login_required
@@ -100,11 +142,11 @@ def forward_do(request, pk):
 
     my_role = (my_profile.role or "").strip().lower()
 
-    # ✅ students cannot forward
+    # ❌ students cannot forward
     if my_role == "student":
         return JsonResponse({"ok": False, "error": "Students cannot forward"}, status=403)
 
-    # ✅ only the assigned staff can forward this request
+    # ❌ only the currently assigned user can forward
     if req.request_to_id != request.user.id:
         return JsonResponse({"ok": False, "error": "Not assigned to you"}, status=403)
 
@@ -126,10 +168,34 @@ def forward_do(request, pk):
     if not target_profile:
         return JsonResponse({"ok": False, "error": "User not found in same department/role"}, status=404)
 
-    # ✅ UPDATE REQUEST ASSIGNEE + CURRENT LEVEL
+    # ✅ THIS IS THE IMPORTANT PART (UPDATE + HISTORY)
     req.request_to = target_profile.user
-    req.current_level = target_profile.role   # ✅ THIS FIXES STUDENT DASHBOARD LOCATION
     req.status = "pending"
-    req.save(update_fields=["request_to", "current_level", "status", "updated_at"])
+    req.current_level = target_profile.role   # 🔥 fixes dashboard current location
+    req.save()
+
+    RequestHistory.objects.create(
+        request=req,
+        action="forwarded",
+        from_role=my_role,
+        to_role=target_profile.role,
+        actor=request.user,
+        note="Forwarded"
+    )
 
     return JsonResponse({"ok": True})
+
+@login_required
+def track_request(request, id):
+    req = get_object_or_404(PermissionRequest, id=id)
+
+    # student can track only their own request
+    if req.student_id != request.user.id:
+        return HttpResponseForbidden("Not allowed")
+
+    history = RequestHistory.objects.filter(request=req).order_by("created_at")
+
+    return render(request, "permissions/track_request.html", {
+        "request_obj": req,
+        "history": history
+    })
