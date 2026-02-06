@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="min-h-[70vh] flex items-center justify-center">
+  <div class="w-full max-w-6xl px-4">
+    <h2 class="text-2xl font-bold text-center mb-8">Select Login</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <!-- Employee Login -->
+      <div class="bg-white rounded-xl shadow overflow-hidden border">
+        <div class="bg-purple-700 text-white text-center py-4 text-lg font-semibold">
+          Employee Login
+        </div>
+        <div class="p-6">
+          <form method="POST" action="{% url 'employee_login' %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex items-center gap-3">
+              <label class="w-24 text-red-600 font-semibold">User Name</label>
+              <input name="username" required class="flex-1 border rounded px-3 py-2" />
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="w-24 text-red-600 font-semibold">Password</label>
+              <input name="password" type="password" required class="flex-1 border rounded px-3 py-2" />
+            </div>
+
+            <div class="text-center pt-2">
+              <button class="px-6 py-2 rounded-full bg-purple-700 text-white font-semibold hover:bg-purple-800">
+                LOGIN
+              </button>
+            </div>
+          </form>
+          <div class="text-center mt-4">
+    <p class="text-sm text-gray-600">
+        Don’t have an account?
+        <a href="{% url 'register' %}"
+           class="text-indigo-600 font-semibold hover:underline">
+            Register
+        </a>
+    </p>
+</div>
+
+        </div>
+      </div>
+
+      <!-- Student Login -->
+      <div class="bg-white rounded-xl shadow overflow-hidden border">
+        <div class="bg-orange-500 text-white text-center py-4 text-lg font-semibold">
+          Student Login
+        </div>
+        <div class="p-6">
+          <form method="POST" action="{% url 'student_login' %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex items-center gap-3">
+              <label class="w-24 text-red-600 font-semibold">User Name</label>
+              <input name="username" required class="flex-1 border rounded px-3 py-2" />
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="w-24 text-red-600 font-semibold">Password</label>
+              <input name="password" type="password" required class="flex-1 border rounded px-3 py-2" />
+            </div>
+
+            <div class="text-center pt-2">
+              <button class="px-6 py-2 rounded-full bg-orange-500 text-white font-semibold hover:bg-orange-600">
+                LOGIN
+              </button>
+            </div>
+          </form>
+          <div class="text-center mt-4">
+    <p class="text-sm text-gray-600">
+        Don’t have an account?
+        <a href="{% url 'register' %}"
+           class="text-indigo-600 font-semibold hover:underline">
+            Register
+        </a>
+    </p>
+</div>
+
+        </div>
+      </div>
+
+      <!-- Principal Login (instead of Parent) -->
+      <div class="bg-white rounded-xl shadow overflow-hidden border">
+        <div class="bg-sky-500 text-white text-center py-4 text-lg font-semibold">
+          Principal Login
+        </div>
+        <div class="p-6">
+          <form method="POST" action="{% url 'principal_login' %}" class="space-y-4">
+            {% csrf_token %}
+            <div class="flex items-center gap-3">
+              <label class="w-24 text-red-600 font-semibold">User Name</label>
+              <input name="username" required class="flex-1 border rounded px-3 py-2" />
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="w-24 text-red-600 font-semibold">Password</label>
+              <input name="password" type="password" required class="flex-1 border rounded px-3 py-2" />
+            </div>
+
+            <div class="text-center pt-2">
+              <button class="px-6 py-2 rounded-full bg-sky-500 text-white font-semibold hover:bg-sky-600">
+                LOGIN
+              </button>
+            </div>
+          </form>
+          <div class="text-center mt-4">
+    <p class="text-sm text-gray-600">
+        Don’t have an account?
+        <a href="{% url 'register' %}"
+           class="text-indigo-600 font-semibold hover:underline">
+            Register
+        </a>
+    </p>
+</div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

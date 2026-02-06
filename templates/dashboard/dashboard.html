@@ -19,11 +19,13 @@
             <p class="text-gray-500 mt-1">Here’s an overview of your permission requests</p>
         </div>
 
-        <!-- Request Permission Button -->
+        <!-- Request Permission Button (NOT for principal) -->
+        {% if profile and profile.role|lower != "principal" %}
         <a href="{% url 'request_permission' %}"
            class="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow hover:bg-indigo-700 transition">
             ➕ Request Permission
         </a>
+        {% endif %}
     </div>
 
     <!-- ================= STUDENT DASHBOARD ================= -->
@@ -91,20 +93,19 @@
                                     </td>
 
                                     <td class="p-3">
-  <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-    {{ req.current_level|upper }}
-    {% if req.request_to %}
-      (
-      {% if req.request_to.first_name %}
-        {{ req.request_to.first_name }} {{ req.request_to.last_name }}
-      {% else %}
-        {{ req.request_to.username }}
-      {% endif %}
-      )
-    {% endif %}
-  </span>
-</td>
-
+                                        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                                            {{ req.current_level|upper }}
+                                            {% if req.request_to %}
+                                                (
+                                                {% if req.request_to.first_name %}
+                                                    {{ req.request_to.first_name }} {{ req.request_to.last_name }}
+                                                {% else %}
+                                                    {{ req.request_to.username }}
+                                                {% endif %}
+                                                )
+                                            {% endif %}
+                                        </span>
+                                    </td>
 
                                     <td class="p-3">
                                         {{ req.applied_at|date:"Y-m-d" }}
@@ -130,21 +131,23 @@
 
     <!-- ================= STAFF/PROCTOR/HOD/PRINCIPAL DASHBOARD ================= -->
 
-        <!-- TWO CARDS ONLY -->
+        <!-- TWO CARDS -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <!-- Pending Review -->
+
+            <!-- Pending Review (for all staff roles incl principal) -->
             <div class="bg-yellow-400 text-white rounded-xl shadow p-6">
                 <p class="text-lg font-semibold">Pending Review</p>
                 <p class="text-4xl font-bold mt-2">{{ received_counts.pending }}</p>
             </div>
 
+            <!-- My Requests card (NOT for principal) -->
+            {% if profile and profile.role|lower != "principal" %}
             <a href="{% url 'my_requests' %}"
-   class="block bg-blue-500 text-white rounded-xl shadow p-6 hover:bg-blue-600 transition">
-    <p class="text-lg font-semibold">My Requests</p>
-    <p class="text-4xl font-bold mt-2">{{ submitted_requests|length }}</p>
-</a>
-
-
+               class="block bg-blue-500 text-white rounded-xl shadow p-6 hover:bg-blue-600 transition">
+                <p class="text-lg font-semibold">My Requests</p>
+                <p class="text-4xl font-bold mt-2">{{ submitted_requests|length }}</p>
+            </a>
+            {% endif %}
         </div>
 
         <!-- Requests Received -->
@@ -191,33 +194,34 @@
                                             </span>
                                         {% else %}
                                             <div class="space-x-2">
-    <a href="{% url 'approve_request' req.id %}"
-       class="px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700">
-        Approve
-    </a>
+                                                <a href="{% url 'approve_request' req.id %}"
+                                                   class="px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700">
+                                                    Approve
+                                                </a>
 
-    <a href="{% url 'reject_request' req.id %}"
-       class="px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
-        Reject
-    </a>
+                                                <a href="{% url 'reject_request' req.id %}"
+                                                   class="px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
+                                                    Reject
+                                                </a>
 
-    <button type="button"
-            class="px-3 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600"
-            onclick="openForwardModal({{ req.id }})">
-        Forward
-    </button>
+                                                {% if profile and profile.role|lower != "principal" %}
+                                                <button type="button"
+                                                        class="px-3 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600"
+                                                        onclick="openForwardModal({reqId})">
+                                                    Forward
+                                                </button>
+                                                {% endif %}
 
-    <a href="{% url 'track_request' req.id %}"
-       class="px-3 py-1 text-xs rounded bg-teal-600 text-white hover:bg-teal-700">
-        Track
-    </a>
+                                                <a href="{% url 'track_request' req.id %}"
+                                                   class="px-3 py-1 text-xs rounded bg-teal-600 text-white hover:bg-teal-700">
+                                                    Track
+                                                </a>
 
-    <a href="{% url 'view_request' req.id %}"
-       class="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">
-        View
-    </a>
-</div>
-
+                                                <a href="{% url 'view_request' req.id %}"
+                                                   class="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">
+                                                    View
+                                                </a>
+                                            </div>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -231,9 +235,7 @@
         </div>
 
     {% endif %}
-
 </div>
-
 
 <!-- Forward Modal -->
 <div id="forwardModal" class="fixed inset-0 hidden items-center justify-center bg-black/40 z-50">

@@ -5,6 +5,32 @@ from django.views.decorators.http import require_POST
 
 from accounts.models import UserProfile
 from .models import PermissionRequest, RequestHistory
+from django.core.mail import send_mail
+from django.conf import settings 
+from django.core.mail import send_mail
+from django.conf import settings
+
+def notify_student(req, action_text):
+    student_email = req.student.email
+    if not student_email:
+        return  # no email saved
+
+    subject = f"Your permission request is {action_text.upper()}"
+    msg = (
+        f"Hi {req.student.username},\n\n"
+        f"Your request '{req.title}' has been {action_text.upper()}.\n\n"
+        f"Current Level: {req.current_level}\n"
+    )
+
+    send_mail(
+        subject,
+        msg,
+        settings.DEFAULT_FROM_EMAIL,
+        [student_email],
+        fail_silently=False
+    )
+
+
 
 
 @login_required
@@ -22,49 +48,36 @@ from .models import RequestHistory  # make sure this import exists
 @login_required
 def approve_request(request, id):
     req = get_object_or_404(PermissionRequest, id=id)
-
-    # only assigned person can approve
-    if req.request_to_id != request.user.id:
-        return HttpResponseForbidden("Not allowed")
-
-    old_level = req.current_level
-
     req.status = "approved"
-    req.save(update_fields=["status"])
+    req.save()
 
-    RequestHistory.objects.create(
-        request=req,
-        action="approved",
-        from_role=old_level,
-        to_role=old_level,
-        actor=request.user,
-        note="Approved"
-    )
+    if req.student.email:
+        send_mail(
+            subject="Your permission request is APPROVED",
+            message=f"Hi {req.student.username},\n\nYour request '{req.title}' has been APPROVED.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[req.student.email],
+            fail_silently=True
+        )
 
     return redirect("dashboard")
+
 
 
 @login_required
 def reject_request(request, id):
     req = get_object_or_404(PermissionRequest, id=id)
-
-    # only assigned person can reject
-    if req.request_to_id != request.user.id:
-        return HttpResponseForbidden("Not allowed")
-
-    old_level = req.current_level
-
     req.status = "rejected"
-    req.save(update_fields=["status"])
+    req.save()
 
-    RequestHistory.objects.create(
-        request=req,
-        action="rejected",
-        from_role=old_level,
-        to_role=old_level,
-        actor=request.user,
-        note="Rejected"
-    )
+    if req.student.email:
+        send_mail(
+            subject="Your permission request is REJECTED",
+            message=f"Hi {req.student.username},\n\nYour request '{req.title}' has been REJECTED.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[req.student.email],
+            fail_silently=True
+        )
 
     return redirect("dashboard")
 
@@ -85,12 +98,14 @@ from accounts.models import UserProfile
 from .models import PermissionRequest
 
 ROLE_FLOW = {
-    "student": ["proctor", "staff", "hod", "principal"],
-    "proctor": ["hod", "principal"],
-    "staff": ["hod", "principal"],
-    "hod": ["principal"],
+    "student": ["proctor", "staff", "hod", "dean", "principal"],
+    "proctor": ["hod", "dean", "principal"],
+    "staff": ["hod", "dean", "principal"],
+    "hod": ["dean", "principal"],
+    "dean": ["principal"],
     "principal": [],
 }
+
 
 
 
@@ -173,6 +188,18 @@ def forward_do(request, pk):
     req.status = "pending"
     req.current_level = target_profile.role   # 🔥 fixes dashboard current location
     req.save()
+    if req.student.email:
+        send_mail(
+        subject="Your permission request was FORWARDED",
+        message=(
+            f"Hi {req.student.username},\n\n"
+            f"Your request '{req.title}' has been FORWARDED to {target_profile.role.upper()}."
+        ),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[req.student.email],
+        fail_silently=True
+        )
+
 
     RequestHistory.objects.create(
         request=req,

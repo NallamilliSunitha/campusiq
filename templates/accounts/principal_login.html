@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-md mx-auto mt-10 bg-white p-6 rounded-xl shadow">
+  <h2 class="text-xl font-bold mb-4">Principal Login</h2>
+  {% if error %}<p class="text-red-600 mb-3">{{ error }}</p>{% endif %}
+  <form method="POST">
+    {% csrf_token %}
+    <input name="username" class="w-full border rounded px-3 py-2 mb-3" placeholder="Username" required>
+    <input name="password" type="password" class="w-full border rounded px-3 py-2 mb-4" placeholder="Password" required>
+    <button class="w-full bg-sky-500 text-white py-2 rounded font-semibold">Login</button>
+  </form>
+</div>
+{% endblock %}

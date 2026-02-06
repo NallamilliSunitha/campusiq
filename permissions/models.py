@@ -1,7 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
 
 class PermissionRequest(models.Model):
+   
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('approved', 'Approved'),
@@ -36,9 +39,13 @@ class PermissionRequest(models.Model):
     )
 
     current_level = models.CharField(max_length=50, default='proctor')
-    file = models.FileField(upload_to='permission_files/', null=True, blank=True)
+    is_urgent = models.BooleanField(default=False)
+    escalate_at = models.DateTimeField(null=True, blank=True)
 
     applied_at = models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to="permissions/", null=True, blank=True)
+    
+
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -48,6 +55,7 @@ class RequestHistory(models.Model):
     ACTION_CHOICES = [
         ("created", "Created"),
         ("forwarded", "Forwarded"),
+        ("auto_escalated", "Auto Escalated"),
         ("approved", "Approved"),
         ("rejected", "Rejected"),
     ]

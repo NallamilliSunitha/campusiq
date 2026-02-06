@@ -112,7 +112,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
+
 
 USE_I18N = True
 
@@ -126,4 +127,20 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 LOGIN_REDIRECT_URL = '/accounts/dashboard/'
-LOGOUT_REDIRECT_URL = '/auth/login/'
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+# ================= EMAIL CONFIGURATION =================
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "sunithareddynallamilli11@gmail.com"
+EMAIL_HOST_PASSWORD = "ykyzimlawkqzvyac"
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER 
+
+NORMAL_ESCALATION_HOURS = 24
+URGENT_MIN_MINUTES = 5
+URGENT_MAX_MINUTES = 360   # 6 hours limit
+

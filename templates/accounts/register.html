@@ -38,7 +38,14 @@
             <label class="block text-gray-700">Roll Number</label>
             <input type="text" name="username" placeholder="Enter your roll number"
                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+
         </div>
+        <div>
+            <label class="block text-gray-700">Email</label>
+<input type="email" name="email" placeholder="Enter your email" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+
+
+</div>
 
         <div>
             <label class="block text-gray-700">Password</label>
@@ -69,7 +76,7 @@
     </form>
 
     <p class="mt-4 text-center text-gray-600">
-        Already have an account? <a href="{% url 'login' %}" class="text-indigo-600 font-semibold hover:underline">Login</a>
+        Already have an account? <a href="{% url 'login_home' %}" class="text-indigo-600 font-semibold hover:underline">Login</a>
     </p>
 </div>
 
