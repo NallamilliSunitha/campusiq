@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-700">
+  <div class="max-w-6xl mx-auto px-6 py-16 sm:py-20 text-white">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+      <div>
+        <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight">
+          QUICK PERMIT
+        </h1>
+        <p class="mt-4 text-white/90 text-lg leading-relaxed">
+          Manage permission requests and certificate applications in one place.
+          Track approvals, reassign tasks, forward requests, and handle urgent escalations — faster and cleaner.
+        </p>
+
+        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+          <a href="{% url 'login_home' %}"
+             class="inline-flex justify-center items-center px-6 py-3 rounded-lg bg-white text-indigo-700 font-semibold shadow hover:bg-indigo-50 transition">
+            Login
+          </a>
+
+          <a href="{% url 'register' %}"
+             class="inline-flex justify-center items-center px-6 py-3 rounded-lg bg-indigo-900/40 ring-1 ring-white/40 text-white font-semibold hover:bg-indigo-900/60 transition">
+            Create Account
+          </a>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/90">
+          <span class="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">⚡ Urgent Requests</span>
+          <span class="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">📩 Email Notifications</span>
+          <span class="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">🧾 Tracking & History</span>
+        </div>
+      </div>
+
+      <div class="bg-white/10 rounded-2xl p-6 ring-1 ring-white/20 backdrop-blur">
+        <div class="bg-white rounded-2xl p-6 shadow-xl text-gray-800">
+          <h3 class="text-lg font-bold mb-4">Quick Overview</h3>
+
+          <div class="space-y-4">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">📝</div>
+              <div>
+                <p class="font-semibold">Submit Requests</p>
+                <p class="text-sm text-gray-600">Permissions / Certificates with proper workflow.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">✅</div>
+              <div>
+                <p class="font-semibold">Approve / Reject</p>
+                <p class="text-sm text-gray-600">Authorities take action in one click.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-yellow-100 flex items-center justify-center">🔁</div>
+              <div>
+                <p class="font-semibold">Forward / Reassign</p>
+                <p class="text-sm text-gray-600">Send to next level or same department staff.</p>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">⏳</div>
+              <div>
+                <p class="font-semibold">Auto Escalation</p>
+                <p class="text-sm text-gray-600">Urgent requests auto-move if delayed.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6">
+            <a href="{% url 'login_home' %}"
+               class="w-full inline-flex justify-center items-center px-5 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition">
+              Go to Dashboard
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-gray-50">
+  <div class="max-w-6xl mx-auto px-6 py-14">
+    <div class="text-center">
+      <h2 class="text-3xl font-bold text-gray-900">Everything you need, in one workflow</h2>
+      <p class="mt-3 text-gray-600 max-w-2xl mx-auto">
+        Built for students and staff to reduce manual follow-ups and keep the process transparent.
+      </p>
+    </div>
+
+    <div class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-md transition">
+        <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center text-xl">📌</div>
+        <h3 class="mt-4 font-bold text-lg">Role-based flow</h3>
+        <p class="mt-2 text-gray-600 text-sm">
+          Requests move across roles (Proctor → HOD → Dean → Principal) with clear current location.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-md transition">
+        <div class="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center text-xl">📩</div>
+        <h3 class="mt-4 font-bold text-lg">Email updates</h3>
+        <p class="mt-2 text-gray-600 text-sm">
+          Notifications for assigned users and students on key actions: assigned, forwarded, approved, rejected.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-md transition">
+        <div class="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center text-xl">⚡</div>
+        <h3 class="mt-4 font-bold text-lg">Urgent handling</h3>
+        <p class="mt-2 text-gray-600 text-sm">
+          Urgent requests appear first with tags and can auto-escalate if not acted upon.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-md transition">
+        <div class="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center text-xl">👁</div>
+        <h3 class="mt-4 font-bold text-lg">Track & history</h3>
+        <p class="mt-2 text-gray-600 text-sm">
+          Track every step with timestamps: created, forwarded, reassigned, auto-escalated, approved/rejected.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-md transition">
+        <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center text-xl">🧾</div>
+        <h3 class="mt-4 font-bold text-lg">Certificates</h3>
+        <p class="mt-2 text-gray-600 text-sm">
+          Apply for certificates and route them to assigned staff for review and processing.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl p-6 shadow hover:shadow-md transition">
+        <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-xl">🔒</div>
+        <h3 class="mt-4 font-bold text-lg">Secure access</h3>
+        <p class="mt-2 text-gray-600 text-sm">
+          Login pages per role, with restrictions to prevent wrong-role access.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-white">
+  <div class="max-w-6xl mx-auto px-6 py-14">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+      <div>
+        <h2 class="text-3xl font-bold text-gray-900">How it works</h2>
+        <p class="mt-3 text-gray-600">
+          Simple process for students and staff — no confusion, no manual chasing.
+        </p>
+
+        <ol class="mt-6 space-y-4">
+          <li class="flex gap-3">
+            <span class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">1</span>
+            <div>
+              <p class="font-semibold text-gray-900">Student submits request</p>
+              <p class="text-sm text-gray-600">Select authority, add dates, reason, and optional document.</p>
+            </div>
+          </li>
+
+          <li class="flex gap-3">
+            <span class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">2</span>
+            <div>
+              <p class="font-semibold text-gray-900">Assigned staff gets notified</p>
+              <p class="text-sm text-gray-600">Email + dashboard listing with urgent tags on priority requests.</p>
+            </div>
+          </li>
+
+          <li class="flex gap-3">
+            <span class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">3</span>
+            <div>
+              <p class="font-semibold text-gray-900">Action taken or forwarded</p>
+              <p class="text-sm text-gray-600">Approve/reject, forward to next role, or reassign within department.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <div class="bg-gray-50 rounded-2xl p-8 border">
+        <h3 class="text-xl font-bold text-gray-900">Built for every role</h3>
+        <p class="mt-2 text-gray-600 text-sm">
+          Student • Staff • Proctor • HOD • Dean • Principal
+        </p>
+
+        <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="rounded-xl bg-white p-5 border">
+            <p class="font-semibold">Students</p>
+            <p class="text-sm text-gray-600 mt-1">Submit, track, delete pending requests.</p>
+          </div>
+          <div class="rounded-xl bg-white p-5 border">
+            <p class="font-semibold">Staff</p>
+            <p class="text-sm text-gray-600 mt-1">Review, forward, reassign in department.</p>
+          </div>
+          <div class="rounded-xl bg-white p-5 border">
+            <p class="font-semibold">Management</p>
+            <p class="text-sm text-gray-600 mt-1">Higher-level approvals & escalations.</p>
+          </div>
+          <div class="rounded-xl bg-white p-5 border">
+            <p class="font-semibold">Audit trail</p>
+            <p class="text-sm text-gray-600 mt-1">History for every action.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-indigo-700">
+  <div class="max-w-6xl mx-auto px-6 py-12 text-white">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-bold">Ready to use CampusIQ?</h2>
+        <p class="text-white/90 mt-2">Login and start managing requests with a clean workflow.</p>
+      </div>
+      <div class="flex gap-3">
+        <a href="{% url 'login_home' %}"
+           class="px-6 py-3 rounded-lg bg-white text-indigo-700 font-semibold hover:bg-indigo-50 transition">
+          Login
+        </a>
+        <a href="{% url 'register' %}"
+           class="px-6 py-3 rounded-lg bg-indigo-900/40 ring-1 ring-white/40 font-semibold hover:bg-indigo-900/60 transition">
+          Register
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-gray-900 text-gray-300">
+  <div class="max-w-6xl mx-auto px-6 py-10">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      <div>
+        <p class="text-lg font-bold text-white">CampusIQ</p>
+        <p class="text-sm text-gray-400 mt-1">Permission & Certificate Management System</p>
+      </div>
+      <div class="text-sm text-gray-400">
+        © {% now "Y" %} CampusIQ. All rights reserved.
+      </div>
+    </div>
+  </div>
+</footer>
+
+{% endblock %}

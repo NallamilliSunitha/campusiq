@@ -15,11 +15,29 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
+import accounts.views as views
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('permissions/', include('permissions.urls')),
-    path('accounts/', include('accounts.urls')),  # your app URLs
-    path('auth/', include('django.contrib.auth.urls')),  # Django auth URLs now at /auth/
+    path('accounts/', include('accounts.urls')),
+    path('auth/', include('django.contrib.auth.urls')),
+    path("certificates/", include("certificates.urls")),
+    path("", TemplateView.as_view(template_name="index.html"), name="home"),
+    path("forgot-password/", views.forgot_password, name="forgot_password"),
+    path("verify-otp/", views.verify_otp, name="verify_otp"),
+    path("reset-password/", views.reset_password, name="reset_password"),
+
+
+
+  # your app URLs
+      # Django auth URLs now at /auth/
 ]
 
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG and settings.MEDIA_URL:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

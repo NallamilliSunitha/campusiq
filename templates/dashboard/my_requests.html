@@ -43,10 +43,25 @@
 
                     <td class="p-3 text-center space-x-2">
                         <a href="{% url 'track_request' req.id %}"
-                           class="px-3 py-1 text-xs rounded bg-teal-600 text-white">Track</a>
+                           class="px-3 py-1 text-xs rounded bg-teal-600 text-white">
+                           Track
+                        </a>
 
                         <a href="{% url 'view_request' req.id %}"
-                           class="px-3 py-1 text-xs rounded bg-blue-600 text-white">View</a>
+                           class="px-3 py-1 text-xs rounded bg-blue-600 text-white">
+                           View
+                        </a>
+
+                        {% if req.status == "pending" %}
+                        <form action="{% url 'delete_request' req.id %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    onclick="return confirm('Delete this request?')"
+                                    class="px-3 py-1 text-xs rounded bg-gray-700 text-white hover:bg-gray-800">
+                                🗑 Delete
+                            </button>
+                        </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

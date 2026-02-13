@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10 bg-white shadow rounded-xl p-6">
+  <h2 class="text-2xl font-bold mb-2">Reassign Request</h2>
+  <p class="text-gray-600 mb-6">
+    Request: <b>{{ req.request_code }}</b> — {{ req.title }}
+  </p>
+
+  <form id="reassignForm" method="POST" action="{% url 'reassign_do' req.id %}">
+    {% csrf_token %}
+
+    <label class="block font-semibold mb-2">Select person to assign</label>
+    <select name="target_user_id" class="w-full border rounded px-3 py-2" required>
+      <option value="">Select user</option>
+      {% for prof in candidates %}
+        <option value="{{ prof.user.id }}">
+          {{ prof.user.get_full_name|default:prof.user.username }} ({{ prof.role|upper }})
+        </option>
+      {% endfor %}
+    </select>
+
+    <div class="mt-6 flex gap-3 justify-end">
+      <a href="{% url 'dashboard' %}" class="px-4 py-2 rounded bg-gray-200">Back</a>
+      <button type="submit" class="px-4 py-2 rounded bg-indigo-600 text-white">
+        Reassign
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

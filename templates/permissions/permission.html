@@ -2,185 +2,393 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto mt-12">
-    <div class="bg-white shadow-lg rounded-2xl p-8 overflow-visible">
+  <div class="bg-white shadow-lg rounded-2xl p-8">
 
-        <h2 class="text-3xl font-bold text-gray-800 mb-2 text-center">
-            Request Permission
-        </h2>
-        <p class="text-gray-500 text-center mb-8">
-            Fill in the details below to submit your permission request.
+    <h2 class="text-3xl font-bold text-gray-800 mb-2 text-center">
+      Request Permission
+    </h2>
+    <p class="text-gray-500 text-center mb-8">
+      Fill in the details below to submit your permission request.
+    </p>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- Request To (Role) -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-1">Request To</label>
+        <select id="role-select" class="w-full border rounded px-3 py-2">
+          <option value="">Select Role</option>
+          {% for role, users in users_by_role.items %}
+            <option value="{{ role }}">{{ role|capfirst }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- User Dropdown -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-1">Select User</label>
+        <select name="request_to" id="user-select"
+                class="w-full border rounded px-3 py-2" disabled required>
+          <option value="">Select a user</option>
+        </select>
+      </div>
+
+      <!-- Title -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-1">Title</label>
+        <input type="text" name="title" id="titleInput" required
+               placeholder="Sick / Exam / Workshop"
+               class="w-full border rounded px-4 py-2">
+      </div>
+
+      <!-- Upload File -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-2">
+          Upload Permission Letter (PDF / DOC / DOCX)
+        </label>
+        <input type="file" name="permission_file" id="fileInput"
+               accept=".pdf,.doc,.docx"
+               class="w-full border rounded px-4 py-3">
+        <p class="text-xs text-gray-500 mt-1">
+          If you upload a file, the reason box will be disabled (file will be used).
         </p>
+      </div>
 
-        <form method="POST" enctype="multipart/form-data" class="space-y-6 relative overflow-visible">
-            {% csrf_token %}
+      <!-- Leave Type -->
+      <div>
+        <label class="block text-gray-700 font-semibold mb-1">Reason Type</label>
+        <select name="leave_type" id="leaveType" class="w-full border rounded px-4 py-2" required>
+          <option value="">Select reason type</option>
+          <option value="health">Health Issue</option>
+          <option value="fee">Fee Payment</option>
+          <option value="workshop">Workshop / Seminar</option>
+          <option value="exam">Exam / Preparation</option>
+          <option value="internship">Internship / Interview</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
 
-            <!-- Request To (Role Dropdown) -->
-            <div>
-                <label class="block text-gray-700">Request To</label>
-                <select id="role-select" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">Select Role</option>
-                    {% for role, users in users_by_role.items %}
-                        <option value="{{ role }}">{{ role|capfirst }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+      <!-- Dynamic extra fields -->
+      <div id="dynamicFields" class="space-y-4 hidden">
+        <div id="healthFields" class="hidden">
+          <label class="block text-gray-700 font-semibold mb-1">Health Details</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" id="healthIssue" placeholder="Issue (e.g., fever)"
+                   class="w-full border rounded px-4 py-2">
+            <input type="text" id="hospital" placeholder="Hospital/Doctor (optional)"
+                   class="w-full border rounded px-4 py-2">
+          </div>
+        </div>
 
-            <!-- Actual User Dropdown -->
-            <div id="user-select-div" class="mt-2">
-                <label class="block text-gray-700">Select User</label>
-                <select name="request_to" id="user-select" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" disabled>
-                    <option value="">Select a user</option>
-                </select>
-            </div>
+        <div id="feeFields" class="hidden">
+          <label class="block text-gray-700 font-semibold mb-1">Fee Details</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" id="feePurpose" placeholder="Fee type (tuition / exam fee)"
+                   class="w-full border rounded px-4 py-2">
+            <input type="date" id="feeDueDate" class="w-full border rounded px-4 py-2">
+          </div>
+        </div>
 
-            <!-- Title -->
-            <div class="mb-4">
-                <label class="block text-gray-700 font-semibold mb-1">
-                    Title
-                </label>
-                <input
-                    type="text"
-                    name="title"
-                    placeholder="Sick / Exam / Workshop"
-                    required
-                    class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                >
-            </div>
+        <div id="workshopFields" class="hidden">
+          <label class="block text-gray-700 font-semibold mb-1">Workshop Details</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" id="workshopName" placeholder="Workshop/Seminar name"
+                   class="w-full border rounded px-4 py-2">
+            <input type="text" id="workshopVenue" placeholder="Venue/Organizer (optional)"
+                   class="w-full border rounded px-4 py-2">
+          </div>
+        </div>
 
-            <!-- Upload File -->
-            <div>
-                <label class="block text-gray-700 font-semibold mb-2">
-                    Upload Permission Letter (PDF / DOC)
-                </label>
-                <input type="file" name="permission_file"
-                       accept=".pdf,.doc,.docx"
-                       class="w-full border border-gray-300 rounded-xl px-4 py-3">
-            </div>
+        <div id="examFields" class="hidden">
+          <label class="block text-gray-700 font-semibold mb-1">Exam Details</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" id="examName" placeholder="Exam name / subject"
+                   class="w-full border rounded px-4 py-2">
+            <input type="text" id="examCenter" placeholder="Center/Room (optional)"
+                   class="w-full border rounded px-4 py-2">
+          </div>
+        </div>
 
-            <!-- Reason / AI Letter -->
-            <div>
-                <label class="block text-gray-700 font-semibold mb-2">
-                    Reason / AI Letter
-                </label>
-                <textarea id="ai-letter" name="reason" rows="5" required
-                          placeholder="Enter your reason here..."
-                          class="w-full border border-gray-300 rounded-xl px-4 py-3
-                                 focus:outline-none focus:ring-2 focus:ring-indigo-600"></textarea>
-            </div>
+        <div id="internshipFields" class="hidden">
+          <label class="block text-gray-700 font-semibold mb-1">Internship Details</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input type="text" id="companyName" placeholder="Company/Organization name"
+                   class="w-full border rounded px-4 py-2">
+            <input type="text" id="internshipPurpose" placeholder="Purpose (joining/training/interview)"
+                   class="w-full border rounded px-4 py-2">
+          </div>
+        </div>
 
-            <!-- Dates -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">
-                        From Date
-                    </label>
-                    <input type="date" name="from_date" required
-                           class="w-full border border-gray-300 rounded-xl px-4 py-3">
-                </div>
+        <div id="otherFields" class="hidden">
+          <label class="block text-gray-700 font-semibold mb-1">Other Details</label>
+          <input type="text" id="otherReason" placeholder="Short explanation"
+                 class="w-full border rounded px-4 py-2">
+        </div>
+      </div>
 
-                <div>
-                    <label class="block text-gray-700 font-semibold mb-2">
-                        To Date
-                    </label>
-                    <input type="date" name="to_date" required
-                           class="w-full border border-gray-300 rounded-xl px-4 py-3">
-                </div>
-            </div>
-            <label class="flex items-center gap-2">
-  <input type="checkbox" name="is_urgent" id="urgentCheck">
-  Urgent
-</label>
+      <!-- Dates -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-gray-700 font-semibold mb-1">From Date</label>
+          <input type="date" name="from_date" id="fromDate" required
+                 class="w-full border rounded px-4 py-2">
+        </div>
 
-<div id="urgentTimerBox" class="mt-2 hidden">
-  <label class="block text-sm font-medium">Auto escalate in (minutes)</label>
-  <input type="number" name="urgent_minutes" min="5" max="360"
-         class="w-full border rounded p-2" placeholder="Example: 30">
+        <div>
+          <label class="block text-gray-700 font-semibold mb-1">To Date</label>
+          <input type="date" name="to_date" id="toDate" required
+                 class="w-full border rounded px-4 py-2">
+        </div>
+      </div>
+
+      <!-- Reason + Chatbot button -->
+      <div>
+        <div class="flex items-center justify-between gap-3 mb-2">
+          <label class="block text-gray-700 font-semibold">
+            Reason / Letter
+          </label>
+
+          <button type="button" id="chatbotBtn"
+                  class="px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-semibold hover:bg-indigo-100">
+            🤖 Generate with Chatbot
+          </button>
+        </div>
+
+        <textarea id="ai-letter" name="reason" rows="10" required
+                  placeholder="Write your letter here (or click Generate with Chatbot)"
+                  class="w-full border rounded px-4 py-3"></textarea>
+
+        <p class="text-xs text-gray-500 mt-1" id="reasonHint">
+          If you upload a file, this field will be disabled.
+        </p>
+      </div>
+
+      <!-- Urgent -->
+      <label class="flex items-center gap-2">
+        <input type="checkbox" name="is_urgent" id="urgentCheck">
+        Urgent
+      </label>
+
+      <div id="urgentTimerBox" class="hidden">
+        <label class="block text-sm font-medium">Auto escalate in (minutes)</label>
+        <input type="number" name="urgent_minutes" min="5" max="360"
+               class="w-full border rounded px-3 py-2" placeholder="Example: 30">
+      </div>
+
+      <!-- Submit -->
+      <div class="text-center">
+        <button type="submit"
+                class="bg-indigo-600 text-white px-10 py-3 rounded-xl font-semibold hover:bg-indigo-700">
+          Submit Request
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<script>
-document.getElementById("urgentCheck").addEventListener("change", function(){
-  document.getElementById("urgentTimerBox").classList.toggle("hidden", !this.checked);
-});
-</script>
-
-
-            <!-- Submit -->
-            <div class="text-center">
-                <button type="submit"
-                        class="bg-indigo-600 text-white font-semibold px-10 py-3
-                               rounded-xl hover:bg-indigo-700 transition">
-                    Submit Request
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Pass users_by_role safely as JSON -->
 {{ users_by_role|json_script:"users-by-role-data" }}
 
 <script>
-// Elements
-const aiLetter = document.getElementById('ai-letter');
-const roleSelect = document.getElementById('role-select');
-const userSelect = document.getElementById('user-select');
-const fromDateInput = document.querySelector('input[name="from_date"]');
-const toDateInput = document.querySelector('input[name="to_date"]');
+const usersByRoleRaw = JSON.parse(document.getElementById("users-by-role-data").textContent);
 
-// Parse JSON from backend
-const usersByRoleRaw = JSON.parse(document.getElementById('users-by-role-data').textContent);
-const usersByRole = {};
-for (const role in usersByRoleRaw) {
-    usersByRole[role] = usersByRoleRaw[role].map(u => ({
-        id: u['user__id'],
-        name: u['user__first_name'] + ' ' + u['user__last_name']
-    }));
+const roleSelect = document.getElementById("role-select");
+const userSelect = document.getElementById("user-select");
+
+const fileInput = document.getElementById("fileInput");
+const reasonBox = document.getElementById("ai-letter");
+const reasonHint = document.getElementById("reasonHint");
+const chatbotBtn = document.getElementById("chatbotBtn");
+
+const fromDate = document.getElementById("fromDate");
+const toDate = document.getElementById("toDate");
+
+const leaveType = document.getElementById("leaveType");
+const urgentCheck = document.getElementById("urgentCheck");
+const urgentBox = document.getElementById("urgentTimerBox");
+
+const dynamicFields = document.getElementById("dynamicFields");
+const healthFields = document.getElementById("healthFields");
+const feeFields = document.getElementById("feeFields");
+const workshopFields = document.getElementById("workshopFields");
+const examFields = document.getElementById("examFields");
+const internshipFields = document.getElementById("internshipFields");
+const otherFields = document.getElementById("otherFields");
+
+const MY_ROLE = "{{ profile.role|default:''|lower }}";
+const MY_NAME = "{{ request.user.get_full_name|default:request.user.username }}";
+
+function hideAllReasonFieldGroups() {
+  healthFields.classList.add("hidden");
+  feeFields.classList.add("hidden");
+  workshopFields.classList.add("hidden");
+  examFields.classList.add("hidden");
+  internshipFields.classList.add("hidden");
+  otherFields.classList.add("hidden");
 }
 
-// Update user dropdown when role changes
-roleSelect.addEventListener('change', updateUserDropdown);
-userSelect.addEventListener('change', updateLetter);
-fromDateInput.addEventListener('input', updateLetter);
-toDateInput.addEventListener('input', updateLetter);
+function showReasonFieldGroup(type) {
+  hideAllReasonFieldGroups();
+  if (!type) {
+    dynamicFields.classList.add("hidden");
+    return;
+  }
+  dynamicFields.classList.remove("hidden");
 
-function updateUserDropdown() {
-    const role = roleSelect.value;
-    userSelect.innerHTML = '<option value="">Select a user</option>';
-    userSelect.disabled = !role;
+  if (type === "health") healthFields.classList.remove("hidden");
+  else if (type === "fee") feeFields.classList.remove("hidden");
+  else if (type === "workshop") workshopFields.classList.remove("hidden");
+  else if (type === "exam") examFields.classList.remove("hidden");
+  else if (type === "internship") internshipFields.classList.remove("hidden");
+  else if (type === "other") otherFields.classList.remove("hidden");
+}
 
-    if (role && usersByRole[role] && usersByRole[role].length > 0) {
-        usersByRole[role].forEach(u => {
-            const option = document.createElement('option');
-            option.value = u.id;
-            option.text = u.name;
-            userSelect.appendChild(option);
-        });
-    } else if (role) {
-        const option = document.createElement('option');
-        option.value = "";
-        option.text = "No users available for this role";
-        userSelect.appendChild(option);
+function todayISO() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function initDateLimits() {
+  const today = todayISO();
+  fromDate.min = today;
+  toDate.min = today;
+}
+
+function setReasonMode(isFileUploaded) {
+  if (isFileUploaded) {
+    reasonBox.value = "";
+    reasonBox.readOnly = true;
+    reasonBox.required = false;
+    reasonBox.placeholder = "Uploaded file will be used as the permission letter.";
+    reasonHint.textContent = "File uploaded. Reason box disabled.";
+    chatbotBtn.disabled = true;
+    chatbotBtn.classList.add("opacity-50","cursor-not-allowed");
+  } else {
+    reasonBox.readOnly = false;
+    reasonBox.required = true;
+    reasonBox.placeholder = "Write your letter here (or click Generate with Chatbot)";
+    reasonHint.textContent = "No file uploaded. Use chatbot or type manually.";
+    chatbotBtn.disabled = false;
+    chatbotBtn.classList.remove("opacity-50","cursor-not-allowed");
+  }
+}
+
+// ✅ Chatbot generator (frontend demo)
+// Later you will replace this with API call to real chatbot
+function generateChatbotLetter() {
+  const authority = userSelect.options[userSelect.selectedIndex]?.text || "Respected Authority";
+  const f = fromDate.value || "[FROM DATE]";
+  const t = toDate.value || "[TO DATE]";
+  const title = document.getElementById("titleInput").value || "Permission Request";
+  const reasonType = leaveType.value || "other";
+
+  let brief = "due to unavoidable reasons.";
+  if (reasonType === "health") brief = "due to health concerns.";
+  if (reasonType === "fee") brief = "to complete a fee/payment-related process.";
+  if (reasonType === "workshop") brief = "to attend an academic workshop/seminar.";
+  if (reasonType === "exam") brief = "for exam-related preparation/commitments.";
+  if (reasonType === "internship") brief = "for an internship/interview commitment.";
+
+  reasonBox.value =
+`To,
+${authority}
+
+Subject: Request for Permission/Leave (${title}) from ${f} to ${t}
+
+Respected Sir/Madam,
+
+I, ${MY_NAME}, request your kind permission to grant me leave from ${f} to ${t} ${brief}
+I assure you that I will complete any pending work and rejoin promptly after the approved period.
+
+Kindly consider my request and grant approval.
+
+Thank you.
+
+Yours sincerely,
+${MY_NAME}
+(${MY_ROLE || "Member"})`;
+}
+
+// Role -> users dropdown
+roleSelect.addEventListener("change", function () {
+  const role = this.value;
+  userSelect.innerHTML = '<option value="">Select a user</option>';
+  userSelect.disabled = true;
+
+  if (role && usersByRoleRaw[role]) {
+    usersByRoleRaw[role].forEach(u => {
+      const opt = document.createElement("option");
+      opt.value = u.user__id;
+      const full = `${u.user__first_name || ""} ${u.user__last_name || ""}`.trim();
+      opt.text = full || u.user__username;
+      userSelect.appendChild(opt);
+    });
+    userSelect.disabled = false;
+  } else if (role) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.text = "No users available for this role";
+    userSelect.appendChild(opt);
+  }
+});
+
+leaveType.addEventListener("change", function () {
+  if (fileInput.files.length === 0) showReasonFieldGroup(this.value);
+});
+
+fileInput.addEventListener("change", function () {
+  setReasonMode(fileInput.files.length > 0);
+  if (fileInput.files.length > 0) {
+    dynamicFields.classList.add("hidden");
+    hideAllReasonFieldGroups();
+  } else {
+    showReasonFieldGroup(leaveType.value);
+  }
+});
+
+// // Function to get today's date in YYYY-MM-DD format
+// Date validation logic
+fromDate.addEventListener("input", function () {
+  const today = todayISO();
+
+  // Prevent From Date from being before today
+  if (fromDate.value && fromDate.value < today) {
+    fromDate.value = today;
+  }
+
+  if (fromDate.value) {
+    // To Date cannot be before From Date
+    toDate.min = fromDate.value;
+
+    // Clear To Date if invalid
+    if (toDate.value && toDate.value < fromDate.value) {
+      toDate.value = "";
     }
-    updateLetter();
-}
+  } else {
+    // Reset To Date min if From Date cleared
+    toDate.min = today;
+  }
+});
 
-// Update AI Letter dynamically
-function updateLetter() {
-    const authority = userSelect.options[userSelect.selectedIndex]?.text || "[Authority]";
-    const fromDate = fromDateInput.value || "[FROM DATE]";
-    const toDate = toDateInput.value || "[TO DATE]";
-    const userName = "{{ request.user.get_full_name|default:request.user.username }}";
 
-    aiLetter.value = `Dear ${authority},
+urgentCheck.addEventListener("change", function () {
+  urgentBox.classList.toggle("hidden", !this.checked);
+});
 
-I kindly request permission from ${fromDate} to ${toDate} due to a valid reason.
-I request you to please consider my application.
+chatbotBtn.addEventListener("click", function () {
+  if (fileInput.files.length > 0) return;
+  generateChatbotLetter();
+});
 
-Thanking you.
-
-Sincerely,
-${userName}`;
-}
+// init
+window.addEventListener("load", function () {
+  initDateLimits();
+  showReasonFieldGroup(leaveType.value);
+  setReasonMode(fileInput.files.length > 0);
+});
 </script>
 
 {% endblock %}

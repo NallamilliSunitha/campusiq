@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'permissions',
+    'certificates',
 ]
 
 MIDDLEWARE = [
@@ -142,5 +143,9 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 NORMAL_ESCALATION_HOURS = 24
 URGENT_MIN_MINUTES = 5
-URGENT_MAX_MINUTES = 360   # 6 hours limit
+URGENT_MAX_MINUTES = 360   # 6 hours limit 
+URGENT_WARNING_MINUTES = 10
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
 

@@ -1,263 +1,277 @@
 {% extends "base.html" %}
-
 {% block content %}
 
 <div class="space-y-8">
-    <!-- Welcome + Action -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white rounded-xl shadow p-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">
-                Welcome,
-                <span class="text-indigo-600">
-                    {% if request.user.first_name %}
-                        {{ request.user.first_name }} {{ request.user.last_name }}
-                    {% else %}
-                        {{ request.user.username }}
-                    {% endif %}
-                </span>
-            </h2>
-            <p class="text-gray-500 mt-1">Here’s an overview of your permission requests</p>
-        </div>
-
-        <!-- Request Permission Button (NOT for principal) -->
-        {% if profile and profile.role|lower != "principal" %}
-        <a href="{% url 'request_permission' %}"
-           class="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow hover:bg-indigo-700 transition">
-            ➕ Request Permission
-        </a>
-        {% endif %}
+  <!-- Welcome + Action -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white rounded-xl shadow p-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800">
+        Welcome,
+        <span class="text-indigo-600">
+          {% if request.user.first_name %}
+            {{ request.user.first_name }} {{ request.user.last_name }}
+          {% else %}
+            {{ request.user.username }}
+          {% endif %}
+        </span>
+      </h2>
+      <p class="text-gray-500 mt-1">Here’s an overview of your permission requests</p>
     </div>
 
-    <!-- ================= STUDENT DASHBOARD ================= -->
-    {% if profile and profile.role|lower == "student" %}
-
-        <!-- Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white rounded-xl shadow p-5 text-center">
-                <p class="text-gray-500">Total Requests</p>
-                <p class="text-3xl font-bold text-indigo-600">{{ total }}</p>
-            </div>
-
-            <div class="bg-white rounded-xl shadow p-5 text-center">
-                <p class="text-gray-500">Pending</p>
-                <p class="text-3xl font-bold text-yellow-500">{{ pending }}</p>
-            </div>
-
-            <div class="bg-white rounded-xl shadow p-5 text-center">
-                <p class="text-gray-500">Approved</p>
-                <p class="text-3xl font-bold text-green-600">{{ approved }}</p>
-            </div>
-
-            <div class="bg-white rounded-xl shadow p-5 text-center">
-                <p class="text-gray-500">Rejected</p>
-                <p class="text-3xl font-bold text-red-600">{{ rejected }}</p>
-            </div>
-        </div>
-
-        <!-- Student Requests (no Reason column) -->
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-xl font-semibold mb-4">Your Submitted Requests</h3>
-
-            {% if submitted_requests %}
-                <div class="overflow-x-auto">
-                    <table class="w-full border border-gray-200 text-sm">
-                        <thead class="bg-gray-100 text-gray-700">
-                            <tr>
-                                <th class="p-3 text-left">Title</th>
-                                <th class="p-3 text-left">Status</th>
-                                <th class="p-3 text-left">Current Location</th>
-                                <th class="p-3 text-left">Created</th>
-                                <th class="p-3 text-center">Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {% for req in submitted_requests %}
-                                <tr class="border-t hover:bg-gray-50">
-                                    <td class="p-3">{{ req.title|default:"—" }}</td>
-
-                                    <td class="p-3">
-                                        {% if req.status == "approved" %}
-                                            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                                                Approved
-                                            </span>
-                                        {% elif req.status == "rejected" %}
-                                            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                                                Rejected
-                                            </span>
-                                        {% else %}
-                                            <span class="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
-                                                Pending
-                                            </span>
-                                        {% endif %}
-                                    </td>
-
-                                    <td class="p-3">
-                                        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                                            {{ req.current_level|upper }}
-                                            {% if req.request_to %}
-                                                (
-                                                {% if req.request_to.first_name %}
-                                                    {{ req.request_to.first_name }} {{ req.request_to.last_name }}
-                                                {% else %}
-                                                    {{ req.request_to.username }}
-                                                {% endif %}
-                                                )
-                                            {% endif %}
-                                        </span>
-                                    </td>
-
-                                    <td class="p-3">
-                                        {{ req.applied_at|date:"Y-m-d" }}
-                                    </td>
-
-                                    <td class="p-3 text-center">
-                                        <a href="{% url 'track_request' req.id %}"
-                                           class="inline-flex items-center gap-2 px-3 py-1 text-xs rounded bg-teal-600 text-white hover:bg-teal-700">
-                                            👁 Track
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-gray-500 text-center py-4">No requests found.</p>
-            {% endif %}
-        </div>
-
-    {% else %}
-
-    <!-- ================= STAFF/PROCTOR/HOD/PRINCIPAL DASHBOARD ================= -->
-
-        <!-- TWO CARDS -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
-            <!-- Pending Review (for all staff roles incl principal) -->
-            <div class="bg-yellow-400 text-white rounded-xl shadow p-6">
-                <p class="text-lg font-semibold">Pending Review</p>
-                <p class="text-4xl font-bold mt-2">{{ received_counts.pending }}</p>
-            </div>
-
-            <!-- My Requests card (NOT for principal) -->
-            {% if profile and profile.role|lower != "principal" %}
-            <a href="{% url 'my_requests' %}"
-               class="block bg-blue-500 text-white rounded-xl shadow p-6 hover:bg-blue-600 transition">
-                <p class="text-lg font-semibold">My Requests</p>
-                <p class="text-4xl font-bold mt-2">{{ submitted_requests|length }}</p>
-            </a>
-            {% endif %}
-        </div>
-
-        <!-- Requests Received -->
-        <div class="bg-white rounded-xl shadow p-6">
-            <h3 class="text-xl font-semibold mb-1">Requests Received</h3>
-
-            <p class="text-gray-500 mb-4">
-                Pending: {{ received_counts.pending }},
-                Approved: {{ received_counts.approved }},
-                Rejected: {{ received_counts.rejected }}
-            </p>
-
-            {% if received_requests %}
-                <div class="overflow-x-auto">
-                    <table class="w-full border border-gray-200 text-sm">
-                        <thead class="bg-gray-100 text-gray-700">
-                            <tr>
-                                <th class="p-3 text-left">Title</th>
-                                <th class="p-3 text-left">Submitted By</th>
-                                <th class="p-3 text-left">Date</th>
-                                <th class="p-3 text-center">Actions</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {% for req in received_requests %}
-                                <tr class="border-t hover:bg-gray-50">
-                                    <td class="p-3">{{ req.title|default:"—" }}</td>
-                                    <td class="p-3">{{ req.student.username }}</td>
-                                    <td class="p-3">{{ req.from_date }} → {{ req.to_date }}</td>
-
-                                    <td class="p-3 text-center">
-                                        {% if req.status == "approved" %}
-                                            <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-semibold">
-                                                Approved
-                                            </span>
-                                        {% elif req.status == "rejected" %}
-                                            <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 font-semibold">
-                                                Rejected
-                                            </span>
-                                        {% elif req.status == "pending" and profile and req.current_level != profile.role %}
-                                            <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-semibold">
-                                                Forwarded
-                                            </span>
-                                        {% else %}
-                                            <div class="space-x-2">
-                                                <a href="{% url 'approve_request' req.id %}"
-                                                   class="px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700">
-                                                    Approve
-                                                </a>
-
-                                                <a href="{% url 'reject_request' req.id %}"
-                                                   class="px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">
-                                                    Reject
-                                                </a>
-
-                                                {% if profile and profile.role|lower != "principal" %}
-                                                <button type="button"
-                                                        class="px-3 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600"
-                                                        onclick="openForwardModal({reqId})">
-                                                    Forward
-                                                </button>
-                                                {% endif %}
-
-                                                <a href="{% url 'track_request' req.id %}"
-                                                   class="px-3 py-1 text-xs rounded bg-teal-600 text-white hover:bg-teal-700">
-                                                    Track
-                                                </a>
-
-                                                <a href="{% url 'view_request' req.id %}"
-                                                   class="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">
-                                                    View
-                                                </a>
-                                            </div>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <p class="text-gray-500 text-center py-4">No requests assigned.</p>
-            {% endif %}
-        </div>
-
+    {% if profile and profile.role|lower != "principal" %}
+      <a href="{% url 'request_permission' %}"
+         class="inline-flex items-center gap-2 bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow hover:bg-indigo-700 transition">
+        ➕ Request Permission
+      </a>
     {% endif %}
+
+    <div class="flex flex-wrap gap-3 mt-4">
+      <a href="{% url 'apply_certificate' %}"
+         class="inline-flex items-center gap-2 bg-purple-600 text-white px-5 py-2.5 rounded-lg font-semibold shadow hover:bg-purple-700 transition">
+        🎓 Apply Certificate
+      </a>
+    </div>
+  </div>
+
+  {% if profile and profile.role|lower == "student" %}
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="bg-white rounded-xl shadow p-5 text-center">
+        <p class="text-gray-500">Total Requests</p>
+        <p class="text-3xl font-bold text-indigo-600">{{ total }}</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-5 text-center">
+        <p class="text-gray-500">Pending</p>
+        <p class="text-3xl font-bold text-yellow-500">{{ pending }}</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-5 text-center">
+        <p class="text-gray-500">Approved</p>
+        <p class="text-3xl font-bold text-green-600">{{ approved }}</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-5 text-center">
+        <p class="text-gray-500">Rejected</p>
+        <p class="text-3xl font-bold text-red-600">{{ rejected }}</p>
+      </div>
+    </div>
+
+    <!-- Student Requests -->
+    <div class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-xl font-semibold mb-4">Your Submitted Requests</h3>
+
+      {% if submitted_requests %}
+        <div class="overflow-x-auto">
+          <table class="w-full border border-gray-200 text-sm">
+            <thead class="bg-gray-100 text-gray-700">
+              <tr>
+                <th class="p-3 text-left">Title</th>
+                <th class="p-3 text-left">Status</th>
+                <th class="p-3 text-left">Current Location</th>
+                <th class="p-3 text-left">Created</th>
+                <th class="p-3 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for req in submitted_requests %}
+                <tr class="border-t hover:bg-gray-50">
+                  <td class="p-3">{{ req.title|default:"—" }}</td>
+                  <td class="p-3">
+                    {% if req.status == "approved" %}
+                      <span class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Approved</span>
+                    {% elif req.status == "rejected" %}
+                      <span class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Rejected</span>
+                    {% else %}
+                      <span class="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">Pending</span>
+                    {% endif %}
+                  </td>
+                  <td class="p-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                      {{ req.current_level|upper }}
+                      {% if req.request_to %}
+                        (
+                        {% if req.request_to.first_name %}
+                          {{ req.request_to.first_name }} {{ req.request_to.last_name }}
+                        {% else %}
+                          {{ req.request_to.username }}
+                        {% endif %}
+                        )
+                      {% endif %}
+                    </span>
+                  </td>
+                  <td class="p-3">{{ req.applied_at|date:"Y-m-d" }}</td>
+                  <td class="p-3 text-center">
+                    <a href="{% url 'track_request' req.id %}"
+                       class="inline-flex items-center gap-2 px-3 py-1 text-xs rounded bg-teal-600 text-white hover:bg-teal-700">
+                      👁 Track
+                    </a>
+
+                    {% if req.status == "pending" %}
+                      <form action="{% url 'delete_request' req.id %}" method="POST" class="inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                onclick="return confirm('Are you sure you want to delete this request?')"
+                                class="px-3 py-1 text-xs rounded bg-gray-700 text-white hover:bg-gray-800">
+                          🗑 Delete
+                        </button>
+                      </form>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-gray-500 text-center py-4">No requests found.</p>
+      {% endif %}
+    </div>
+
+  {% else %}
+
+    <!-- Staff dashboard -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+      <div class="bg-yellow-400 text-white rounded-xl shadow p-6">
+        <p class="text-lg font-semibold">Pending Review</p>
+        <p class="text-4xl font-bold mt-2">{{ received_counts.pending }}</p>
+      </div>
+
+      {% if profile and profile.role|lower != "principal" %}
+        <a href="{% url 'my_requests' %}"
+           class="block bg-blue-500 text-white rounded-xl shadow p-6 hover:bg-blue-600 transition">
+          <p class="text-lg font-semibold">My Requests</p>
+          <p class="text-4xl font-bold mt-2">{{ submitted_requests|length }}</p>
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- Requests Received -->
+    <div class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-xl font-semibold mb-1">Requests Received</h3>
+
+      <p class="text-gray-500 mb-4">
+        Pending: {{ received_counts.pending }},
+        Approved: {{ received_counts.approved }},
+        Rejected: {{ received_counts.rejected }}
+      </p>
+
+      {% if received_requests %}
+        <div class="overflow-x-auto">
+          <table class="w-full border border-gray-200 text-sm">
+            <thead class="bg-gray-100 text-gray-700">
+              <tr>
+                <th class="p-3 text-left">Title</th>
+                <th class="p-3 text-left">Submitted By</th>
+                <th class="p-3 text-left">Date</th>
+                <th class="p-3 text-center">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for req in received_requests %}
+                <tr class="border-t hover:bg-gray-50">
+                  <td class="p-3">
+                    {{ req.title|default:"—" }}
+                    {% if req.is_urgent and req.status == "pending" %}
+                      <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">
+                        ⚡ URGENT
+                      </span>
+                    {% endif %}
+                  </td>
+
+                  <td class="p-3">{{ req.student.username }}</td>
+                  <td class="p-3">{{ req.from_date }} → {{ req.to_date }}</td>
+
+                  <td class="p-3 text-center">
+                    {% if req.status == "approved" %}
+                      <span class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-semibold">Approved</span>
+                    {% elif req.status == "rejected" %}
+                      <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 font-semibold">Rejected</span>
+                    {% elif req.status == "pending" and profile and req.current_level != profile.role %}
+                      <span class="px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700 font-semibold">Forwarded</span>
+                    {% else %}
+                      <div class="space-x-2">
+                        <a href="{% url 'approve_request' req.id %}"
+                           class="px-3 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700">Approve</a>
+
+                        <a href="{% url 'reject_request' req.id %}"
+                           class="px-3 py-1 text-xs rounded bg-red-600 text-white hover:bg-red-700">Reject</a>
+
+                        <!-- ✅ REASSIGN (CALLS JS, DOES NOT OPEN JSON PAGE) -->
+                        <button type="button"
+        class="px-3 py-1 text-xs rounded bg-indigo-600 text-white hover:bg-indigo-700 reassign-btn"
+        data-id="{{ req.id }}">
+  Reassign
+</button>
+
+
+
+                        {% if profile and profile.role|lower != "principal" %}
+                          <button type="button"
+                                  class="px-3 py-1 text-xs rounded bg-yellow-500 text-white hover:bg-yellow-600 forward-btn"
+                                  data-id="{{ req.id }}">
+                            Forward
+                          </button>
+                        {% endif %}
+
+                        <a href="{% url 'track_request' req.id %}"
+                           class="px-3 py-1 text-xs rounded bg-teal-600 text-white hover:bg-teal-700">Track</a>
+
+                        <a href="{% url 'view_request' req.id %}"
+                           class="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-700">View</a>
+                      </div>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-gray-500 text-center py-4">No requests assigned.</p>
+      {% endif %}
+    </div>
+
+  {% endif %}
 </div>
 
 <!-- Forward Modal -->
 <div id="forwardModal" class="fixed inset-0 hidden items-center justify-center bg-black/40 z-50">
-    <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
-        <h3 class="text-lg font-semibold mb-4">Forward Request</h3>
+  <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
+    <h3 class="text-lg font-semibold mb-4">Forward Request</h3>
 
-        <label class="block text-sm font-medium mb-1">Select Role</label>
-        <select id="roleSelect" class="w-full border rounded p-2 mb-4" onchange="loadUsers()">
-            <option value="">-- Select Role --</option>
-        </select>
+    <label class="block text-sm font-medium mb-1">Select Role</label>
+    <select id="roleSelect" class="w-full border rounded p-2 mb-4" onchange="loadUsers()">
+      <option value="">-- Select Role --</option>
+    </select>
 
-        <label class="block text-sm font-medium mb-1">Select Person</label>
-        <select id="userSelect" class="w-full border rounded p-2 mb-4">
-            <option value="">-- Select User --</option>
-        </select>
+    <label class="block text-sm font-medium mb-1">Select Person</label>
+    <select id="userSelect" class="w-full border rounded p-2 mb-4">
+      <option value="">-- Select User --</option>
+    </select>
 
-        <div class="flex justify-end gap-2">
-            <button class="px-4 py-2 rounded border" onclick="closeForwardModal()">Cancel</button>
-            <button class="px-4 py-2 rounded bg-indigo-600 text-white" onclick="submitForward()">Forward</button>
-        </div>
+    <div class="flex justify-end gap-2">
+      <button class="px-4 py-2 rounded border" onclick="closeForwardModal()">Cancel</button>
+      <button class="px-4 py-2 rounded bg-indigo-600 text-white" onclick="submitForward()">Forward</button>
     </div>
+  </div>
 </div>
+<div id="reassignModal" class="fixed inset-0 hidden items-center justify-center bg-black/40 z-50">
+  <div class="bg-white rounded-xl shadow p-6 w-full max-w-lg">
+    <h3 class="text-lg font-semibold mb-4">Reassign Request</h3>
+
+    <label class="block text-sm font-medium mb-1">Select User</label>
+    <select id="reassignUserSelect" class="w-full border rounded p-2 mb-4">
+      <option value="">-- Select User --</option>
+    </select>
+
+    <div class="flex justify-end gap-2">
+      <button type="button" class="px-4 py-2 rounded border" onclick="closeReassignModal()">Cancel</button>
+      <button type="button" class="px-4 py-2 rounded bg-indigo-600 text-white" onclick="submitReassign()">Reassign</button>
+    </div>
+  </div>
+</div>
+
+
 
 <script>
 let currentReqId = null;
@@ -270,6 +284,8 @@ function getCookie(name) {
   });
   return v;
 }
+
+/* ================= FORWARD ================= */
 
 function openForwardModal(reqId) {
   currentReqId = reqId;
@@ -288,7 +304,6 @@ function closeForwardModal() {
 
 async function loadRoles() {
   const res = await fetch(`/permissions/requests/${currentReqId}/forward-ui/`);
-
   let data = {};
   try { data = await res.json(); } catch (e) {}
 
@@ -300,7 +315,7 @@ async function loadRoles() {
 
   const roleSelect = document.getElementById("roleSelect");
   roleSelect.innerHTML = `<option value="">-- Select Role --</option>`;
-  data.allowed_roles.forEach(r => {
+  (data.allowed_roles || []).forEach(r => {
     roleSelect.innerHTML += `<option value="${r}">${r.toUpperCase()}</option>`;
   });
 
@@ -316,7 +331,7 @@ async function loadUsers() {
 
   const userSelect = document.getElementById("userSelect");
   userSelect.innerHTML = `<option value="">-- Select User --</option>`;
-  data.users.forEach(u => {
+  (data.users || []).forEach(u => {
     const full = `${u.user__first_name || ""} ${u.user__last_name || ""}`.trim();
     const label = full ? `${full} (${u.user__username})` : u.user__username;
     userSelect.innerHTML += `<option value="${u.user__id}">${label}</option>`;
@@ -350,6 +365,105 @@ async function submitForward() {
   closeForwardModal();
   location.reload();
 }
-</script>
 
+document.addEventListener("click", function(e){
+  if(e.target.classList.contains("forward-btn")){
+    openForwardModal(e.target.dataset.id);
+  }
+});
+
+/* ================= REASSIGN =================
+   Uses your JSON response keys:
+   user_id, user_username, user_first_name, user_last_name, role
+*/
+
+
+let currentReassignReqId = null;
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== "") {
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + "=")) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+function closeReassignModal() {
+  const m = document.getElementById("reassignModal");
+  m.classList.add("hidden");
+  m.classList.remove("flex");
+  currentReassignReqId = null;
+}
+
+async function openReassignModal(reqId) {
+  currentReassignReqId = reqId;
+
+  const res = await fetch(`/permissions/reassign/${reqId}/`);
+  const data = await res.json();
+
+  if (!data.ok) {
+    alert(data.error || "Unable to load users");
+    return;
+  }
+
+  const select = document.getElementById("reassignUserSelect");
+  select.innerHTML = `<option value="">-- Select User --</option>`;
+
+  (data.users || []).forEach(u => {
+    const full = (`${u.first_name || ""} ${u.last_name || ""}`).trim();
+    const label = full ? `${full} (${u.role})` : `${u.username} (${u.role})`;
+    select.innerHTML += `<option value="${u.id}">${label}</option>`;
+  });
+
+  const m = document.getElementById("reassignModal");
+  m.classList.remove("hidden");
+  m.classList.add("flex");
+}
+
+async function submitReassign() {
+  const target_user_id = document.getElementById("reassignUserSelect").value;
+
+  if (!currentReassignReqId) {
+    alert("Request id missing");
+    return;
+  }
+  if (!target_user_id) {
+    alert("Select a user");
+    return;
+  }
+
+  const res = await fetch(`/permissions/reassign/${currentReassignReqId}/do/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-CSRFToken": getCookie("csrftoken"),
+    },
+    body: `target_user_id=${encodeURIComponent(target_user_id)}`
+  });
+
+  let data = {};
+  try { data = await res.json(); } catch(e) {}
+
+  if (!res.ok || !data.ok) {
+    alert(data.error || `Reassign failed (${res.status})`);
+    return;
+  }
+
+  closeReassignModal();
+  location.reload();
+}
+
+document.addEventListener("click", function(e){
+  if (e.target.classList.contains("reassign-btn")) {
+    openReassignModal(e.target.dataset.id);
+  }
+});
+</script>
 {% endblock %}
